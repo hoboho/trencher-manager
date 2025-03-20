@@ -4,9 +4,9 @@ from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QPushButton,
                              QDoubleSpinBox, QComboBox)
 from PyQt6.QtCore import Qt, QDate
 from datetime import datetime
-from ..database.models import Project
-from ..database.database import DatabaseManager
-from ..utils.logger import setup_logger
+from src.database.models import Project
+from src.database.database import DatabaseManager
+from src.utils.logger import setup_logger
 
 logger = setup_logger(__name__)
 

@@ -2,9 +2,9 @@ from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
                              QPushButton, QStackedWidget, QLabel, QFrame)
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QIcon, QPalette, QColor
-from .styles import DARK_THEME, LIGHT_THEME
-from .projects_widget import ProjectsWidget
-from ..utils.logger import setup_logger
+from src.gui.styles import DARK_THEME, LIGHT_THEME
+from src.gui.projects_widget import ProjectsWidget
+from src.utils.logger import setup_logger
 
 logger = setup_logger(__name__)
 

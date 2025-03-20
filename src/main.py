@@ -1,11 +1,16 @@
 import sys
 import os
+
+# Add the project root directory to Python path
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, project_root)
+
 from PyQt6.QtWidgets import QApplication
 from PyQt6.QtCore import Qt
-from database.database import DatabaseManager
-from database.models import Base
-from gui.main_window import MainWindow
-from utils.logger import setup_logger
+from src.database.database import DatabaseManager
+from src.database.models import Base
+from src.gui.main_window import MainWindow
+from src.utils.logger import setup_logger
 
 logger = setup_logger(__name__)
 
