@@ -1,0 +1,68 @@
+{
+    "project": {
+        "billing_type": "area",
+        "required_fields": {
+            "name": true,
+            "contract_amount": true,
+            "start_date": true,
+            "end_date": true,
+            "total_length": true,
+            "average_depth": true,
+            "average_width": true,
+            "status": true
+        },
+        "optional_fields": {
+            "description": true,
+            "client_name": true,
+            "client_contact": true,
+            "location": true,
+            "notes": true
+        }
+    },
+    "machine": {
+        "required_fields": {
+            "name": true,
+            "model": true,
+            "purchase_date": false,
+            "purchase_price": false,
+            "fuel_consumption_rate": false,
+            "fuel_cost_per_liter": false,
+            "maintenance_cost_per_hour": false,
+            "trenching_depth": false,
+            "trenching_width": false,
+            "maximum_speed": false,
+            "weight": false,
+            "status": true
+        }
+    },
+    "operator": {
+        "required_fields": {
+            "name": true,
+            "hourly_rate": true,
+            "overtime_rate": true,
+            "overtime_threshold": true
+        },
+        "optional_fields": {
+            "contact": true,
+            "skills": true,
+            "notes": true
+        }
+    },
+    "financial": {
+        "currency": "ریال",
+        "currency_symbol": "ریال ",
+        "tax_rate": 0.0,
+        "default_payment_terms": 30,
+        "invoice_prefix": "INV-",
+        "invoice_number_length": 6
+    },
+    "system": {
+        "theme": "dark",
+        "language": "fa",
+        "date_format": "YYYY-MM-DD",
+        "time_format": "HH:mm",
+        "auto_backup": true,
+        "backup_interval": 7,
+        "max_backup_files": 5
+    }
+}

@@ -1,129 +1,175 @@
 from PyQt6.QtWidgets import (QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
-                             QPushButton, QStackedWidget, QLabel, QFrame)
+                             QPushButton, QStackedWidget, QLabel, QFrame,
+                             QScrollArea, QSizePolicy)
 from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QIcon, QPalette, QColor
 from src.gui.styles import DARK_THEME, LIGHT_THEME
 from src.gui.projects_widget import ProjectsWidget
+from src.gui.machines_widget import MachinesWidget
+from src.gui.operators_widget import OperatorsWidget
+from src.gui.dashboard_widget import DashboardWidget
+from src.gui.settings_widget import SettingsWidget
 from src.utils.logger import setup_logger
+from src.utils.language_manager import LanguageManager
 
 logger = setup_logger(__name__)
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Terencher - Trencher Management System")
-        self.setMinimumSize(1200, 800)
-        
-        # Initialize UI components
+        self.language_manager = LanguageManager()
+        self.language_manager.language_changed.connect(self._on_language_changed)
+        self.setWindowTitle("Terencher - Project Management System")
+        self.setMinimumSize(800, 600)
         self._init_ui()
+    
+    def _on_language_changed(self, language):
+        """Handle language change event by updating all UI elements."""
+        logger.info(f"Updating main window UI for language: {language}")
         
-        # Set theme (default to light theme)
-        self.set_theme('light')
+        # Update window title
+        self.setWindowTitle(self.language_manager.translate('app.title'))
         
-        logger.info("Main window initialized")
+        # Update sidebar title
+        self.sidebar_title.setText(self.language_manager.translate('app.name'))
+        
+        # Update navigation buttons
+        for btn, section in self.nav_buttons:
+            btn.setText(self.language_manager.translate(f'nav.{section}'))
+        
+        # Update content widgets
+        for widget in self.content_widgets.values():
+            if hasattr(widget, '_on_language_changed'):
+                widget._on_language_changed(language)
+        
+        logger.info("Main window UI update complete")
     
     def _init_ui(self):
-        """Initialize the user interface components."""
         # Create central widget and main layout
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         main_layout = QHBoxLayout(central_widget)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setSpacing(0)
         
         # Create sidebar
         sidebar = self._create_sidebar()
         main_layout.addWidget(sidebar)
         
-        # Create main content area
-        self.content_area = QStackedWidget()
-        main_layout.addWidget(self.content_area)
+        # Create content area
+        content_area = QScrollArea()
+        content_area.setWidgetResizable(True)
+        content_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        content_area.setObjectName("content-area")
+        
+        # Create content container
+        content_container = QWidget()
+        content_layout = QVBoxLayout(content_container)
+        content_layout.setContentsMargins(20, 20, 20, 20)
+        content_layout.setSpacing(20)
+        
+        # Initialize content widgets
+        self._init_content_widgets(content_layout)
+        
+        content_area.setWidget(content_container)
+        main_layout.addWidget(content_area)
         
         # Set layout proportions
         main_layout.setStretch(0, 1)  # Sidebar
         main_layout.setStretch(1, 4)  # Content area
-        
-        # Initialize content widgets
-        self._init_content_widgets()
     
     def _create_sidebar(self):
-        """Create the sidebar navigation."""
-        sidebar = QFrame()
+        sidebar = QWidget()
         sidebar.setObjectName("sidebar")
-        sidebar.setMaximumWidth(250)
+        sidebar.setMinimumWidth(200)
+        sidebar.setMaximumWidth(300)
         
         layout = QVBoxLayout(sidebar)
         layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
         
-        # Logo/Title area
-        title_frame = QFrame()
-        title_frame.setObjectName("sidebar-title")
-        title_layout = QVBoxLayout(title_frame)
+        # Title
+        title_container = QWidget()
+        title_container.setObjectName("sidebar-title")
+        title_layout = QVBoxLayout(title_container)
+        title_layout.setContentsMargins(20, 10, 20, 10)
         
-        title_label = QLabel("Terencher")
-        title_label.setObjectName("sidebar-title-text")
-        title_layout.addWidget(title_label)
+        self.sidebar_title = QLabel(self.language_manager.translate('app.name'))
+        self.sidebar_title.setObjectName("sidebar-title-text")
+        title_layout.addWidget(self.sidebar_title)
         
-        layout.addWidget(title_frame)
+        layout.addWidget(title_container)
         
         # Navigation buttons
-        self.nav_buttons = {}
-        nav_items = [
-            ("Dashboard", "dashboard"),
-            ("Projects", "projects"),
-            ("Machines", "machines"),
-            ("Operators", "operators"),
-            ("Financial", "financial"),
-            ("Reports", "reports"),
-            ("Settings", "settings")
+        self.nav_buttons = []
+        nav_sections = [
+            ("dashboard", "dashboard"),
+            ("projects", "projects"),
+            ("machines", "machines"),
+            ("operators", "operators"),
+            ("financial", "financial"),
+            ("reports", "reports"),
+            ("settings", "settings")
         ]
         
-        for text, name in nav_items:
-            btn = QPushButton(text)
-            btn.setObjectName(f"nav-{name}")
-            btn.setCheckable(True)
-            btn.clicked.connect(lambda checked, n=name: self._handle_navigation(n))
+        for section, section_id in nav_sections:
+            btn = QPushButton(self.language_manager.translate(f'nav.{section_id}'))
+            btn.setObjectName("nav-button")
+            btn.setFixedHeight(40)
+            btn.clicked.connect(lambda checked, s=section: self._show_section(s))
             layout.addWidget(btn)
-            self.nav_buttons[name] = btn
+            self.nav_buttons.append((btn, section_id))
         
-        # Add stretch to push buttons to the top
         layout.addStretch()
-        
-        # Theme toggle button at the bottom
-        theme_btn = QPushButton("Toggle Theme")
-        theme_btn.setObjectName("theme-toggle")
-        theme_btn.clicked.connect(self._toggle_theme)
-        layout.addWidget(theme_btn)
         
         return sidebar
     
-    def _init_content_widgets(self):
-        """Initialize all content widgets."""
-        # Create placeholder widgets for each section
+    def _init_content_widgets(self, layout):
+        # Initialize all content widgets
         self.content_widgets = {}
         
-        # Projects widget
+        # Dashboard
+        self.content_widgets['dashboard'] = DashboardWidget()
+        layout.addWidget(self.content_widgets['dashboard'])
+        
+        # Projects
         self.content_widgets['projects'] = ProjectsWidget()
-        self.content_area.addWidget(self.content_widgets['projects'])
+        layout.addWidget(self.content_widgets['projects'])
+        
+        # Machines
+        self.content_widgets['machines'] = MachinesWidget()
+        layout.addWidget(self.content_widgets['machines'])
+        
+        # Operators
+        self.content_widgets['operators'] = OperatorsWidget()
+        layout.addWidget(self.content_widgets['operators'])
+        
+        # Settings
+        self.content_widgets['settings'] = SettingsWidget()
+        layout.addWidget(self.content_widgets['settings'])
         
         # Placeholder widgets for other sections
-        for section in ['dashboard', 'machines', 'operators', 'financial', 'reports', 'settings']:
+        placeholder_sections = ['financial', 'reports']
+        for section in placeholder_sections:
             placeholder = QWidget()
-            layout = QVBoxLayout(placeholder)
-            label = QLabel(f"{section.title()} Section - Coming Soon")
-            label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            layout.addWidget(label)
+            placeholder_layout = QVBoxLayout(placeholder)
+            placeholder_label = QLabel(f"{section.title()} section coming soon...")
+            placeholder_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            placeholder_layout.addWidget(placeholder_label)
             self.content_widgets[section] = placeholder
-            self.content_area.addWidget(placeholder)
-    
-    def _handle_navigation(self, section):
-        """Handle navigation button clicks."""
-        # Update button states
-        for name, btn in self.nav_buttons.items():
-            btn.setChecked(name == section)
+            layout.addWidget(placeholder)
         
-        # Show corresponding content
-        if section in self.content_widgets:
-            self.content_area.setCurrentWidget(self.content_widgets[section])
-            logger.info(f"Navigating to section: {section}")
+        # Hide all widgets initially
+        for widget in self.content_widgets.values():
+            widget.hide()
+        
+        # Show dashboard by default
+        self._show_section('dashboard')
+    
+    def _show_section(self, section):
+        """Show the selected section and hide others."""
+        for s, widget in self.content_widgets.items():
+            widget.setVisible(s == section)
     
     def _toggle_theme(self):
         """Toggle between light and dark themes."""

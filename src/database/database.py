@@ -24,7 +24,8 @@ class DatabaseManager:
         self._initialized = True
         self.engine = None
         self.Session = None
-        self.db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'data', 'terencher.db')
+        # Use project root directory for database
+        self.db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'terencher.db')
         self.backup_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'backups')
         self._ensure_directories()
     

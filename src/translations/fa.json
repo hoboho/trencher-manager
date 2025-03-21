@@ -1,0 +1,80 @@
+{
+    "settings": {
+        "title": "تنظیمات",
+        "project_settings": "تنظیمات پروژه",
+        "machine_settings": "تنظیمات ماشین",
+        "operator_settings": "تنظیمات اپراتور",
+        "financial_settings": "تنظیمات مالی",
+        "system_settings": "تنظیمات سیستم",
+        "save": "ذخیره تنظیمات",
+        "success": "موفقیت",
+        "error": "خطا",
+        "settings_saved": "تنظیمات با موفقیت ذخیره شد",
+        "save_failed": "خطا در ذخیره تنظیمات: {}"
+    },
+    "project": {
+        "billing_type": "نوع صورتحساب پروژه",
+        "required_fields": "فیلدهای اجباری",
+        "optional_fields": "فیلدهای اختیاری",
+        "name": "نام",
+        "contract_amount": "مبلغ قرارداد",
+        "start_date": "تاریخ شروع",
+        "end_date": "تاریخ پایان",
+        "total_length": "طول کل",
+        "average_depth": "عمق متوسط",
+        "average_width": "عرض متوسط",
+        "status": "وضعیت",
+        "description": "توضیحات",
+        "client_name": "نام مشتری",
+        "client_contact": "اطلاعات تماس مشتری",
+        "location": "موقعیت",
+        "notes": "یادداشت‌ها"
+    },
+    "machine": {
+        "name": "نام",
+        "model": "مدل",
+        "purchase_date": "تاریخ خرید",
+        "purchase_price": "قیمت خرید",
+        "fuel_consumption_rate": "مصرف سوخت",
+        "fuel_cost_per_liter": "قیمت سوخت به ازای هر لیتر",
+        "maintenance_cost_per_hour": "هزینه نگهداری به ازای هر ساعت",
+        "trenching_depth": "عمق حفاری",
+        "trenching_width": "عرض حفاری",
+        "maximum_speed": "حداکثر سرعت",
+        "weight": "وزن",
+        "status": "وضعیت"
+    },
+    "operator": {
+        "name": "نام",
+        "hourly_rate": "دستمزد ساعتی",
+        "overtime_rate": "دستمزد اضافه کاری",
+        "overtime_threshold": "حد اضافه کاری",
+        "contact": "اطلاعات تماس",
+        "skills": "مهارت‌ها",
+        "notes": "یادداشت‌ها"
+    },
+    "financial": {
+        "currency_settings": "تنظیمات ارز",
+        "currency_name": "نام ارز",
+        "currency_symbol": "نماد ارز",
+        "tax_settings": "تنظیمات مالیات",
+        "tax_rate": "نرخ مالیات",
+        "invoice_settings": "تنظیمات فاکتور",
+        "invoice_prefix": "پیشوند فاکتور",
+        "invoice_number_length": "طول شماره فاکتور",
+        "payment_settings": "تنظیمات پرداخت",
+        "default_payment_terms": "شرایط پرداخت پیش‌فرض"
+    },
+    "system": {
+        "appearance": "ظاهر",
+        "theme": "تم",
+        "language": "زبان",
+        "date_time": "تاریخ و زمان",
+        "date_format": "فرمت تاریخ",
+        "time_format": "فرمت زمان",
+        "backup_settings": "تنظیمات پشتیبان",
+        "enable_auto_backup": "فعال کردن پشتیبان خودکار",
+        "backup_interval": "فاصله پشتیبان",
+        "max_backup_files": "حداکثر فایل‌های پشتیبان"
+    }
+} 
