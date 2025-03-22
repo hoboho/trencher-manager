@@ -13,11 +13,11 @@ from src.utils.calculations import format_currency
 logger = setup_logger(__name__)
 
 class OperatorDialog(QDialog):
-    def __init__(self, parent=None, operator=None):
+    def __init__(self, parent=None, language_manager=None, operator_data=None):
         super().__init__(parent)
-        self.operator = operator
-        self.setWindowTitle("Add Operator" if not operator else "Edit Operator")
-        self.setModal(True)
+        self.language_manager = language_manager
+        self.operator_data = operator_data
+        self.setWindowTitle(self.language_manager.translate('operator.dialog.edit_title' if operator_data else 'operator.dialog.add_title'))
         self._init_ui()
         
     def _init_ui(self):
@@ -25,40 +25,56 @@ class OperatorDialog(QDialog):
         
         # Operator name
         self.name_edit = QLineEdit()
-        if self.operator:
-            self.name_edit.setText(self.operator.name)
-        layout.addRow("Operator Name:", self.name_edit)
+        if self.operator_data:
+            self.name_edit.setText(self.operator_data['name'])
+        layout.addRow(self.language_manager.translate('operator.name') + ":", self.name_edit)
+        
+        # Contact
+        self.contact_edit = QLineEdit()
+        if self.operator_data:
+            self.contact_edit.setText(self.operator_data['contact'])
+        layout.addRow(self.language_manager.translate('operator.contact') + ":", self.contact_edit)
+        
+        # Specialization
+        self.specialization_edit = QLineEdit()
+        if self.operator_data:
+            self.specialization_edit.setText(self.operator_data['specialization'])
+        layout.addRow(self.language_manager.translate('operator.specialization') + ":", self.specialization_edit)
         
         # Hourly rate
         self.hourly_rate_spin = QDoubleSpinBox()
         self.hourly_rate_spin.setMaximum(1000000)
         self.hourly_rate_spin.setPrefix("ریال ")
-        if self.operator:
-            self.hourly_rate_spin.setValue(self.operator.hourly_rate)
-        layout.addRow("Hourly Rate:", self.hourly_rate_spin)
+        if self.operator_data:
+            self.hourly_rate_spin.setValue(self.operator_data['hourly_rate'])
+        layout.addRow(self.language_manager.translate('operator.hourly_rate') + ":", self.hourly_rate_spin)
         
-        # Overtime rate
+        # Overtime rate (1.5x hourly rate by default)
         self.overtime_rate_spin = QDoubleSpinBox()
         self.overtime_rate_spin.setMaximum(1000000)
         self.overtime_rate_spin.setPrefix("ریال ")
-        if self.operator:
-            self.overtime_rate_spin.setValue(self.operator.overtime_rate)
-        layout.addRow("Overtime Rate:", self.overtime_rate_spin)
+        if self.operator_data:
+            self.overtime_rate_spin.setValue(self.operator_data.get('overtime_rate', self.hourly_rate_spin.value() * 1.5))
+        else:
+            self.overtime_rate_spin.setValue(self.hourly_rate_spin.value() * 1.5)
+        layout.addRow(self.language_manager.translate('operator.overtime_rate') + ":", self.overtime_rate_spin)
         
         # Overtime threshold
         self.overtime_threshold_spin = QDoubleSpinBox()
         self.overtime_threshold_spin.setMaximum(24)
-        self.overtime_threshold_spin.setSuffix(" hours")
-        if self.operator:
-            self.overtime_threshold_spin.setValue(self.operator.overtime_threshold)
-        layout.addRow("Overtime Threshold:", self.overtime_threshold_spin)
+        self.overtime_threshold_spin.setValue(8.0)
+        if self.operator_data:
+            self.overtime_threshold_spin.setValue(self.operator_data.get('overtime_threshold', 8.0))
+        layout.addRow(self.language_manager.translate('operator.overtime_threshold') + ":", self.overtime_threshold_spin)
         
         # Buttons
         button_layout = QHBoxLayout()
-        save_btn = QPushButton("Save")
+        save_btn = QPushButton(self.language_manager.translate('common.save'))
+        cancel_btn = QPushButton(self.language_manager.translate('common.cancel'))
+        
         save_btn.clicked.connect(self.accept)
-        cancel_btn = QPushButton("Cancel")
         cancel_btn.clicked.connect(self.reject)
+        
         button_layout.addWidget(save_btn)
         button_layout.addWidget(cancel_btn)
         layout.addRow("", button_layout)
@@ -66,6 +82,8 @@ class OperatorDialog(QDialog):
     def get_operator_data(self):
         return {
             'name': self.name_edit.text(),
+            'contact': self.contact_edit.text(),
+            'specialization': self.specialization_edit.text(),
             'hourly_rate': self.hourly_rate_spin.value(),
             'overtime_rate': self.overtime_rate_spin.value(),
             'overtime_threshold': self.overtime_threshold_spin.value()
@@ -145,7 +163,8 @@ class OperatorsWidget(QWidget):
             self.language_manager.translate('operator.overtime_threshold'),
             self.language_manager.translate('operator.contact'),
             self.language_manager.translate('operator.skills'),
-            self.language_manager.translate('operator.notes')
+            self.language_manager.translate('operator.notes'),
+            self.language_manager.translate('operator.specialization')
         ]
         self.operators_table.setHorizontalHeaderLabels(headers)
     
@@ -164,6 +183,7 @@ class OperatorsWidget(QWidget):
                     self.operators_table.setItem(row, 4, QTableWidgetItem(operator.contact))
                     self.operators_table.setItem(row, 5, QTableWidgetItem(operator.skills))
                     self.operators_table.setItem(row, 6, QTableWidgetItem(operator.notes))
+                    self.operators_table.setItem(row, 7, QTableWidgetItem(operator.specialization))
                 
                 logger.info(f"Loaded {len(operators)} operators")
         except Exception as e:
@@ -189,7 +209,7 @@ class OperatorsWidget(QWidget):
     
     def _add_operator(self):
         """Open dialog to add a new operator."""
-        dialog = OperatorDialog(self)
+        dialog = OperatorDialog(self, self.language_manager)
         if dialog.exec() == QDialog.DialogCode.Accepted:
             try:
                 data = dialog.get_operator_data()
@@ -206,30 +226,45 @@ class OperatorsWidget(QWidget):
                 QMessageBox.critical(self, "Error", "Failed to add operator")
     
     def _edit_operator(self):
-        """Open dialog to edit selected operator."""
-        current_row = self.operators_table.currentRow()
-        if current_row < 0:
-            QMessageBox.warning(self, "Warning", "Please select an operator to edit")
-            return
-        
-        operator_id = int(self.operators_table.item(current_row, 0).text())
+        """Edit the selected operator."""
         try:
-            with self.db_manager.get_session() as session:
-                operator = session.query(Operator).get(operator_id)
-                if operator:
-                    dialog = OperatorDialog(self, operator)
-                    if dialog.exec() == QDialog.DialogCode.Accepted:
-                        data = dialog.get_operator_data()
-                        for key, value in data.items():
-                            setattr(operator, key, value)
+            current_row = self.operators_table.currentRow()
+            if current_row < 0:
+                return
+            
+            # Get operator data from the table
+            operator_data = {
+                'id': self.operators_table.item(current_row, 0).text(),
+                'name': self.operators_table.item(current_row, 1).text(),
+                'contact': self.operators_table.item(current_row, 2).text(),
+                'specialization': self.operators_table.item(current_row, 3).text(),
+                'hourly_rate': float(self.operators_table.item(current_row, 4).text())
+            }
+            
+            # Show edit dialog
+            dialog = OperatorDialog(self, self.language_manager, operator_data)
+            if dialog.exec() == QDialog.DialogCode.Accepted:
+                # Update operator in database
+                updated_data = dialog.get_operator_data()
+                with self.db_manager.get_session() as session:
+                    operator = session.query(Operator).get(operator_data['id'])
+                    if operator:
+                        operator.name = updated_data['name']
+                        operator.contact = updated_data['contact']
+                        operator.specialization = updated_data['specialization']
+                        operator.hourly_rate = updated_data['hourly_rate']
                         session.commit()
                         
-                        self._load_operators()
-                        QMessageBox.information(self, "Success", "Operator updated successfully")
-                        logger.info(f"Updated operator: {operator.name}")
+                # Refresh table
+                self._load_operators()
+                
         except Exception as e:
-            logger.error(f"Failed to edit operator: {str(e)}")
-            QMessageBox.critical(self, "Error", "Failed to edit operator")
+            logger.error(f"Error editing operator: {str(e)}")
+            QMessageBox.critical(
+                self,
+                self.language_manager.translate("common.error"),
+                self.language_manager.translate("operators.errors.edit_failed").format(error=str(e))
+            )
     
     def _delete_operator(self):
         """Delete selected operator."""

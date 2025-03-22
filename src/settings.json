@@ -23,7 +23,7 @@
         "required_fields": {
             "name": true,
             "model": true,
-            "purchase_date": false,
+            "purchase_date": true,
             "purchase_price": false,
             "fuel_consumption_rate": false,
             "fuel_cost_per_liter": false,
@@ -58,7 +58,7 @@
     },
     "system": {
         "theme": "dark",
-        "language": "fa",
+        "language": "en",
         "date_format": "YYYY-MM-DD",
         "time_format": "HH:mm",
         "auto_backup": true,

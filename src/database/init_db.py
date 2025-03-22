@@ -11,6 +11,7 @@ def init_db():
     cursor = conn.cursor()
     
     try:
+              
         # Create users table
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS users (
@@ -27,15 +28,21 @@ def init_db():
             CREATE TABLE IF NOT EXISTS projects (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL,
+                client_name TEXT,
+                client_contact TEXT,
+                location TEXT,
                 contract_amount FLOAT NOT NULL,
                 received_amount FLOAT DEFAULT 0.0,
                 start_date DATE NOT NULL,
                 end_date DATE,
-                status TEXT DEFAULT 'active',
                 total_length FLOAT,
                 average_depth FLOAT,
                 average_width FLOAT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                status TEXT DEFAULT 'active',
+                description TEXT,
+                notes TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         """)
         
@@ -67,7 +74,31 @@ def init_db():
                 hourly_rate FLOAT NOT NULL,
                 overtime_rate FLOAT NOT NULL,
                 overtime_threshold FLOAT DEFAULT 8.0,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                contact TEXT,
+                skills TEXT,
+                notes TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        """)
+        
+        # Create transactions table
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS transactions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                type TEXT NOT NULL,
+                amount FLOAT NOT NULL,
+                category TEXT NOT NULL,
+                description TEXT,
+                date DATE NOT NULL,
+                project_id INTEGER,
+                operator_id INTEGER,
+                machine_id INTEGER,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (project_id) REFERENCES projects (id),
+                FOREIGN KEY (operator_id) REFERENCES operators (id),
+                FOREIGN KEY (machine_id) REFERENCES machines (id)
             );
         """)
         

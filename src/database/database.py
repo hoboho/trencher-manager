@@ -1,10 +1,11 @@
 import os
 from datetime import datetime
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import QueuePool
 from sqlcipher3 import dbapi2 as sqlite3
 from src.utils.logger import setup_logger
+from src.database.models import Base
 
 logger = setup_logger(__name__)
 
@@ -55,10 +56,41 @@ class DatabaseManager:
                     max_overflow=10
                 )
             
+            # Enable foreign key support
+            with self.engine.connect() as conn:
+                conn.execute(text("PRAGMA foreign_keys=ON"))
+                conn.commit()
+            
             self.Session = sessionmaker(bind=self.engine)
+            
+            # Create all tables
+            try:
+                Base.metadata.create_all(self.engine)
+                logger.info("Database tables created successfully")
+            except Exception as e:
+                logger.error(f"Failed to create database tables: {str(e)}")
+                # Try to recreate tables if creation fails
+                self.recreate_tables()
+            
+            # Verify tables were created
+            with self.engine.connect() as conn:
+                result = conn.execute(text("SELECT name FROM sqlite_master WHERE type='table'"))
+                tables = [row[0] for row in result]
+                logger.info(f"Available tables: {tables}")
+            
             logger.info("Database connection initialized successfully")
         except Exception as e:
             logger.error(f"Failed to initialize database: {str(e)}")
+            raise
+    
+    def recreate_tables(self):
+        """Drop and recreate all tables."""
+        try:
+            Base.metadata.drop_all(self.engine)
+            Base.metadata.create_all(self.engine)
+            logger.info("Database tables recreated successfully")
+        except Exception as e:
+            logger.error(f"Failed to recreate database tables: {str(e)}")
             raise
     
     def get_session(self):

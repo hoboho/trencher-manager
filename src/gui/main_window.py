@@ -9,8 +9,12 @@ from src.gui.machines_widget import MachinesWidget
 from src.gui.operators_widget import OperatorsWidget
 from src.gui.dashboard_widget import DashboardWidget
 from src.gui.settings_widget import SettingsWidget
+from src.gui.finance_widget import FinanceWidget
+from src.gui.reports_widget import ReportsWidget
 from src.utils.logger import setup_logger
 from src.utils.language_manager import LanguageManager
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 logger = setup_logger(__name__)
 
@@ -125,6 +129,11 @@ class MainWindow(QMainWindow):
         return sidebar
     
     def _init_content_widgets(self, layout):
+        # Initialize database session
+        engine = create_engine('sqlite:///terencher.db')
+        Session = sessionmaker(bind=engine)
+        session = Session()
+        
         # Initialize all content widgets
         self.content_widgets = {}
         
@@ -144,20 +153,17 @@ class MainWindow(QMainWindow):
         self.content_widgets['operators'] = OperatorsWidget()
         layout.addWidget(self.content_widgets['operators'])
         
+        # Finance
+        self.content_widgets['financial'] = FinanceWidget(session)
+        layout.addWidget(self.content_widgets['financial'])
+        
+        # Reports
+        self.content_widgets['reports'] = ReportsWidget(session)
+        layout.addWidget(self.content_widgets['reports'])
+        
         # Settings
         self.content_widgets['settings'] = SettingsWidget()
         layout.addWidget(self.content_widgets['settings'])
-        
-        # Placeholder widgets for other sections
-        placeholder_sections = ['financial', 'reports']
-        for section in placeholder_sections:
-            placeholder = QWidget()
-            placeholder_layout = QVBoxLayout(placeholder)
-            placeholder_label = QLabel(f"{section.title()} section coming soon...")
-            placeholder_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            placeholder_layout.addWidget(placeholder_label)
-            self.content_widgets[section] = placeholder
-            layout.addWidget(placeholder)
         
         # Hide all widgets initially
         for widget in self.content_widgets.values():
