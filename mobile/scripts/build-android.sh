@@ -6,7 +6,7 @@
 # sandbox resets, then cross-compiles the Rust core and assembles the APK.
 #
 # Usage:
-#   scripts/build-android.sh [--abi arm64|arm|x86|x86_64|all]
+#   scripts/build-android.sh [--abi aarch64|armv7|i686|x86_64|all]
 #
 set -euo pipefail
 
@@ -20,7 +20,7 @@ NDK_VERSION="26.1.10909125"
 CMDLINE_URL="https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip"
 JDK_URL="https://api.adoptium.net/v3/binary/latest/17/ga/linux/x64/jdk/hotspot/normal/eclipse"
 
-ABI="arm64"
+ABI="aarch64"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --abi) ABI="$2"; shift 2 ;;
@@ -29,9 +29,9 @@ while [[ $# -gt 0 ]]; do
 done
 
 case "$ABI" in
-  arm64)  RUST_TARGETS=(aarch64-linux-android) ;;
-  arm)    RUST_TARGETS=(armv7-linux-androideabi) ;;
-  x86)    RUST_TARGETS=(i686-linux-android) ;;
+  aarch64) RUST_TARGETS=(aarch64-linux-android) ;;
+  armv7)  RUST_TARGETS=(armv7-linux-androideabi) ;;
+  i686)   RUST_TARGETS=(i686-linux-android) ;;
   x86_64) RUST_TARGETS=(x86_64-linux-android) ;;
   all)    RUST_TARGETS=(aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android) ;;
   *) echo "bad --abi: $ABI" >&2; exit 1 ;;

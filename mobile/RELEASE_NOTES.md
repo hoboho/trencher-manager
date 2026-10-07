@@ -69,7 +69,7 @@ npm run test:all
 ## 📦 نصب / Install
 
 ```bash
-adb install -r terencher-0.1.0-arm64.apk
+adb install -r terencher-0.1.0-aarch64.apk
 ```
 
 حداقل نسخهٔ اندروید: **7.0 (API 24)**
@@ -78,6 +78,20 @@ adb install -r terencher-0.1.0-arm64.apk
 
 ## ⚠️ نکات / Notes
 
-- این نسخه با معماری **arm64-v8a** ساخته شده (اکثر گوشیهای امروزی)
-- APK با کلید debug امضا شده — برای انتشار در Google Play باید با کلید release امضا شود
-- سازگاری کامل با دیتابیس اپ دسکتاپ (همان ساختار جدولها)
+- این نسخه با معماری **arm64-v8a** ساخته شده (اکثر گوشی‌های امروزی)
+- APK با یک **کلید خودامضا** (self-signed) امضا شده — برای نصب دستی (sideload) مناسب است، اما برای انتشار در Google Play باید با کلید release رسمی خودتان امضا شود
+- سازگاری کامل با دیتابیس اپ دسکتاپ (همان ساختار جدول‌ها)
+
+### مشخصات بیلد
+
+| | |
+| --- | --- |
+| Package | `com.terencher.app` |
+| Version | `0.1.0` (versionCode 1000) |
+| ABI | `arm64-v8a` |
+| minSdk | 24 (Android 7.0) |
+| targetSdk | 37 |
+| Size | ~8.2 MB |
+| Cert SHA-256 | `16b367c25bc917b7cded72f2015c01e23c48d877d9c6d1e90f45e6632e52675e` |
+
+بیلد با `mobile/scripts/build-android.sh` به‌صورت کامل بازتولیدپذیر است.
