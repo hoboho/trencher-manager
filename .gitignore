@@ -223,3 +223,9 @@ backups/*
 # OS specific
 .DS_Store
 Thumbs.db
+
+# ── Mobile (Tauri + Rust) ──
+mobile/src-tauri/target/
+mobile/rust/terencher-core/target/
+mobile/node_modules/
+mobile/src-tauri/gen/
