@@ -12,6 +12,20 @@ original PyQt6 desktop application.
 
 ---
 
+## 📥 دانلود / Download
+
+**آخرین نسخه: [v0.1.0 APK](https://github.com/hoboho/trencher-manager/releases/latest)**
+
+```bash
+adb install -r terencher-0.1.0-aarch64.apk
+```
+
+مشخصات: `com.terencher.app` · v0.1.0 · arm64-v8a · minSdk 24 (Android 7.0) · ~8.2 MB
+
+مقالهٔ تغییرات: [`RELEASE_NOTES.md`](./RELEASE_NOTES.md)
+
+---
+
 ## Screens
 
 | Screen | Parity with desktop |
