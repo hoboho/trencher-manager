@@ -59,6 +59,17 @@ npm run android:dev  # needs the Android SDK/NDK, see README
 - Commands are thin wrappers — put logic in `terencher-core`, not in
   `commands.rs`.
 
+## Keeping the roadmap current
+
+[`ROADMAP.md`](ROADMAP.md) is the project's long-term memory. When your change:
+
+- makes an architectural decision, add an entry to the **Decision Log**,
+- closes a gap or implements a planned phase, tick it off in the **Roadmap**,
+- resolves one of the **Open Questions**, record the answer,
+- or uncovers a new constraint, add it under **Design Pitfalls**.
+
+Keeping it up to date is part of the change, not an afterthought.
+
 ## Code style
 
 - Rust: `cargo fmt` and `cargo clippy`.
