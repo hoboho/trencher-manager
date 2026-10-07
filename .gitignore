@@ -235,3 +235,6 @@ mobile/src-tauri/gen/android/**/build/
 mobile/src-tauri/gen/android/.gradle/
 mobile/src-tauri/gen/android/local.properties
 mobile/src-tauri/gen/android/.idea/
+
+# Local Android/Rust build toolchain (never commit)
+.toolchain/
