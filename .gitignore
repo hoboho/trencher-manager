@@ -228,4 +228,10 @@ Thumbs.db
 mobile/src-tauri/target/
 mobile/rust/terencher-core/target/
 mobile/node_modules/
-mobile/src-tauri/gen/
+
+# The generated Android Studio / Gradle project is source, not build output.
+# Keep it versioned but ignore its compiled artifacts.
+mobile/src-tauri/gen/android/**/build/
+mobile/src-tauri/gen/android/.gradle/
+mobile/src-tauri/gen/android/local.properties
+mobile/src-tauri/gen/android/.idea/
