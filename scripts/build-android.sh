@@ -6,17 +6,18 @@
 # sandbox resets, then cross-compiles the Rust core and assembles the APK.
 #
 # Usage:
-#   scripts/build-android.sh [--abi aarch64|armv7|i686|x86_64|all]
+#   scripts/build-android.sh [--abi aarch64|armv7|i686|x86_64|all] [--sign]
 #
 set -euo pipefail
 
-REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-MOBILE="$REPO_ROOT/mobile"
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 TC="$REPO_ROOT/.toolchain"
 
 JDK_DIR="$TC/jdk"
 SDK_DIR="$TC/sdk"
 NDK_VERSION="26.1.10909125"
+KEYSTORE="${KEYSTORE:-$TC/terencher-release.jks}"
+KS_PASS="${KS_PASS:-terencher}"
 CMDLINE_URL="https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip"
 JDK_URL="https://api.adoptium.net/v3/binary/latest/17/ga/linux/x64/jdk/hotspot/normal/eclipse"
 
@@ -51,6 +52,23 @@ if [[ ! -x "$JDK_DIR/bin/java" ]]; then
 fi
 export JAVA_HOME="$JDK_DIR"
 export PATH="$JAVA_HOME/bin:$PATH"
+
+export GRADLE_USER_HOME="$TC/gradle"
+
+# Some hosts route HTTPS through an intercepting proxy. If a CA bundle is
+# available, fold it into a JVM truststore so Gradle can download its
+# distribution and dependencies.
+TRUSTSTORE="$TC/truststore.jks"
+if [[ -f /etc/mitm/ca.crt && ! -f "$TRUSTSTORE" ]]; then
+  log "Adding the host CA to a JVM truststore"
+  cp "$JAVA_HOME/lib/security/cacerts" "$TRUSTSTORE"
+  keytool -importcert -noprompt -trustcacerts -alias host-ca \
+    -file /etc/mitm/ca.crt -keystore "$TRUSTSTORE" -storepass changeit >/dev/null
+fi
+if [[ -f "$TRUSTSTORE" ]]; then
+  export JAVA_TOOL_OPTIONS="-Djavax.net.ssl.trustStore=$TRUSTSTORE -Djavax.net.ssl.trustStorePassword=changeit"
+  export GRADLE_OPTS="$JAVA_TOOL_OPTIONS"
+fi
 
 # ── 2. Android SDK + NDK ────────────────────────────────────────────────────
 if [[ ! -x "$SDK_DIR/cmdline-tools/latest/bin/sdkmanager" ]]; then
@@ -87,7 +105,7 @@ log "Adding Rust Android targets: ${RUST_TARGETS[*]}"
 for t in "${RUST_TARGETS[@]}"; do rustup target add "$t"; done
 
 # ── 4. Build ────────────────────────────────────────────────────────────────
-cd "$MOBILE"
+cd "$REPO_ROOT"
 [[ -d node_modules ]] || npm install
 
 if [[ ! -d src-tauri/gen/android ]]; then
@@ -98,5 +116,32 @@ fi
 log "Building APK (ABI: $ABI)"
 npx tauri android build --apk --target "$ABI"
 
-log "Done. Artifacts:"
-find src-tauri/gen/android/app/build/outputs -name '*.apk' -print 2>/dev/null || true
+# ── 5. Sign + publish to dist/ ──────────────────────────────────────────────
+# `tauri android build --apk` emits an UNSIGNED release APK, so sign it here.
+BUILD_TOOLS="$SDK_DIR/build-tools/34.0.0"
+UNSIGNED="$(find src-tauri/gen/android/app/build/outputs/apk -name '*-unsigned.apk' | head -n1)"
+VERSION="$(node -p "require('./src-tauri/tauri.conf.json').version")"
+DIST="$REPO_ROOT/dist"
+mkdir -p "$DIST"
+OUT="$DIST/terencher-$VERSION-$ABI.apk"
+
+if [[ -z "$UNSIGNED" ]]; then
+  log "No unsigned APK found; leaving build output as-is"
+  exit 0
+fi
+
+if [[ ! -f "$KEYSTORE" ]]; then
+  log "Generating a self-signed release keystore"
+  keytool -genkeypair -v -keystore "$KEYSTORE" -storepass "$KS_PASS" -keypass "$KS_PASS"     -alias terencher -keyalg RSA -keysize 2048 -validity 10000     -dname 'CN=Terencher, OU=Mobile, O=Terencher, L=Tehran, C=IR'
+fi
+
+log "Aligning + signing"
+"$BUILD_TOOLS/zipalign" -p -f 4 "$UNSIGNED" "$DIST/aligned.apk"
+"$BUILD_TOOLS/apksigner" sign   --ks "$KEYSTORE" --ks-pass "pass:$KS_PASS" --key-pass "pass:$KS_PASS"   --ks-key-alias terencher --out "$OUT" "$DIST/aligned.apk"
+rm -f "$DIST/aligned.apk"
+
+log "Verifying signature"
+"$BUILD_TOOLS/apksigner" verify --print-certs "$OUT" | head -3
+
+log "Done -> $OUT"
+ls -lh "$OUT"

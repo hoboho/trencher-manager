@@ -94,4 +94,4 @@ adb install -r terencher-0.1.0-aarch64.apk
 | Size | ~8.2 MB |
 | Cert SHA-256 | `16b367c25bc917b7cded72f2015c01e23c48d877d9c6d1e90f45e6632e52675e` |
 
-بیلد با `mobile/scripts/build-android.sh` به‌صورت کامل بازتولیدپذیر است.
+بیلد با `scripts/build-android.sh` به‌صورت کامل بازتولیدپذیر است.

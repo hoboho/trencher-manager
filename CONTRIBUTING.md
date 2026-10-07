@@ -1,48 +1,70 @@
-# Contributing to Trencher Manager
+# Contributing to Terencher
 
-We love your input! We want to make contributing to Trencher Manager as easy and transparent as possible, whether it's:
+Thanks for helping improve the Terencher Android app! 🛠️
 
-- Reporting a bug
-- Discussing the current state of the code
-- Submitting a fix
-- Proposing new features
-- Becoming a maintainer
+## Ways to contribute
 
-## We Develop with Github
-We use GitHub to host code, to track issues and feature requests, as well as accept pull requests.
+- 🐛 Reporting bugs
+- 💡 Proposing features
+- 📝 Improving the Persian/English translations
+- 🎨 Refining the UI
+- 🔧 Submitting fixes
 
-## We Use [Github Flow](https://guides.github.com/introduction/flow/index.html)
-Pull requests are the best way to propose changes to the codebase. We actively welcome your pull requests:
+## Development setup
 
-1. Fork the repo and create your branch from `main`.
-2. If you've added code that should be tested, add tests.
-3. If you've changed APIs, update the documentation.
-4. Ensure the test suite passes.
-5. Make sure your code lints.
-6. Issue that pull request!
+```bash
+npm install
+npm run test:all     # must pass before you open a PR
+```
 
-## Any contributions you make will be under the MIT Software License
-In short, when you submit code changes, your submissions are understood to be under the same [MIT License](http://choosealicense.com/licenses/mit/) that covers the project. Feel free to contact the maintainers if that's a concern.
+Running the app:
 
-## Report bugs using Github's [issue tracker]
-We use GitHub issues to track public bugs. Report a bug by [opening a new issue](); it's that easy!
+```bash
+npm run android:dev  # needs the Android SDK/NDK, see README
+```
 
-## Write bug reports with detail, background, and sample code
+## Pull requests
 
-**Great Bug Reports** tend to have:
+1. Fork the repo and branch off `main`.
+2. Keep changes focused — one concern per PR.
+3. Add or update tests for behaviour changes.
+4. Run `npm run test:all` and make sure it is green.
+5. Update the docs (`README.md` / `RELEASE_NOTES.md`) when user-facing
+   behaviour changes.
 
-- A quick summary and/or background
-- Steps to reproduce
-  - Be specific!
-  - Give sample code if you can.
-- What you expected would happen
-- What actually happens
-- Notes (possibly including why you think this might be happening, or stuff you tried that didn't work)
+## Project conventions
 
-## Use a Consistent Coding Style
+### Frontend (`src/`)
 
-* 4 spaces for indentation rather than tabs
-* You can try running `black` for style unification
+- Plain ES modules — no bundler, no framework. Keep it that way.
+- One module per screen under `src/screens/`; export `render(host)` plus an
+  optional `load()` and `onFab()`.
+- **Always** escape user data with `esc()` from `core/ui.js` before putting it
+  into a template string.
+- All user-visible strings go through `t('some.key')` and must exist in **both**
+  `src/locales/fa.js` and `src/locales/en.js`.
+- Entity forms are declarative: add a descriptor to the screen's `FIELDS` array
+  rather than writing markup by hand.
+
+### Rust (`rust/terencher-core/`)
+
+- The core crate must stay **free of UI/framework dependencies** so it can be
+  tested on the host. Keep `tauri` out of it.
+- Add a column in three places: the `CREATE TABLE` in `db.rs`, the `params!`
+  list of the create/update functions, and the struct in `models.rs`.
+- Add an integration test in `tests/db_test.rs` for new behaviour.
+
+### Tauri shell (`src-tauri/`)
+
+- Commands are thin wrappers — put logic in `terencher-core`, not in
+  `commands.rs`.
+
+## Code style
+
+- Rust: `cargo fmt` and `cargo clippy`.
+- JS: 2-space indent, single quotes, trailing commas, `const` over `let`.
 
 ## License
-By contributing, you agree that your contributions will be licensed under its MIT License. 
+
+By contributing you agree that your contributions are licensed under the MIT
+License (see [`LICENSE`](LICENSE)).
